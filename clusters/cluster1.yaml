@@ -26,7 +26,7 @@ spec:
   allowedNodes:
     - pve
   controlPlaneEndpoint:
-    host: 192.168.130.20
+    host: 192.168.130.240
     port: 6443
   dnsServers:
     - 192.168.130.1
