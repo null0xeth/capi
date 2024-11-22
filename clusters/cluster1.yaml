@@ -7,7 +7,7 @@ spec:
   clusterNetwork:
     pods:
       cidrBlocks:
-        - 10.0.0.0/21
+      - 192.168.0.0/16
   controlPlaneRef:
     apiVersion: controlplane.cluster.x-k8s.io/v1beta1
     kind: KubeadmControlPlane
@@ -24,15 +24,15 @@ metadata:
   namespace: default
 spec:
   allowedNodes:
-    - pve
+  - pve
   controlPlaneEndpoint:
     host: 192.168.130.240
     port: 6443
   dnsServers:
-    - 192.168.130.1
+  - 192.168.130.1
   ipv4Config:
     addresses:
-      - 192.168.130.20-192.168.130.75
+    - 192.168.130.20-192.168.130.75
     gateway: 192.168.130.1
     prefix: 25
 ---
@@ -44,61 +44,61 @@ metadata:
 spec:
   kubeadmConfigSpec:
     files:
-      - content: |
-          apiVersion: v1
-          kind: Pod
-          metadata:
-            creationTimestamp: null
+    - content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          creationTimestamp: null
+          name: kube-vip
+          namespace: kube-system
+        spec:
+          containers:
+          - args:
+            - manager
+            env:
+            - name: cp_enable
+              value: "true"
+            - name: vip_interface
+              value: ""
+            - name: address
+              value: 192.168.130.240
+            - name: port
+              value: "6443"
+            - name: vip_arp
+              value: "true"
+            - name: vip_leaderelection
+              value: "true"
+            - name: vip_leaseduration
+              value: "15"
+            - name: vip_renewdeadline
+              value: "10"
+            - name: vip_retryperiod
+              value: "2"
+            image: ghcr.io/kube-vip/kube-vip:v0.5.11
+            imagePullPolicy: IfNotPresent
             name: kube-vip
-            namespace: kube-system
-          spec:
-            containers:
-            - args:
-              - manager
-              env:
-              - name: cp_enable
-                value: "true"
-              - name: vip_interface
-                value: ""
-              - name: address
-                value: 192.168.130.240
-              - name: port
-                value: "6443"
-              - name: vip_arp
-                value: "true"
-              - name: vip_leaderelection
-                value: "true"
-              - name: vip_leaseduration
-                value: "15"
-              - name: vip_renewdeadline
-                value: "10"
-              - name: vip_retryperiod
-                value: "2"
-              image: ghcr.io/kube-vip/kube-vip:v0.5.11
-              imagePullPolicy: IfNotPresent
-              name: kube-vip
-              resources: {}
-              securityContext:
-                capabilities:
-                  add:
-                  - NET_ADMIN
-                  - NET_RAW
-              volumeMounts:
-              - mountPath: /etc/kubernetes/admin.conf
-                name: kubeconfig
-            hostAliases:
-            - hostnames:
-              - kubernetes
-              ip: 127.0.0.1
-            hostNetwork: true
-            volumes:
-            - hostPath:
-                path: /etc/kubernetes/admin.conf
-                type: FileOrCreate
+            resources: {}
+            securityContext:
+              capabilities:
+                add:
+                - NET_ADMIN
+                - NET_RAW
+            volumeMounts:
+            - mountPath: /etc/kubernetes/admin.conf
               name: kubeconfig
-          status: {}
-        owner: root:root
-        path: /etc/kubernetes/manifests/kube-vip.yaml
+          hostAliases:
+          - hostnames:
+            - kubernetes
+            ip: 127.0.0.1
+          hostNetwork: true
+          volumes:
+          - hostPath:
+              path: /etc/kubernetes/admin.conf
+              type: FileOrCreate
+            name: kubeconfig
+        status: {}
+      owner: root:root
+      path: /etc/kubernetes/manifests/kube-vip.yaml
     initConfiguration:
       nodeRegistration:
         kubeletExtraArgs:
@@ -108,10 +108,10 @@ spec:
         kubeletExtraArgs:
           provider-id: proxmox://'{{ ds.meta_data.instance_id }}'
     users:
-      - name: root
-        sshAuthorizedKeys:
-          - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMmJacbLyO/WVFf6GrMVx2l31xGxynWrAEkzX3+myQzW
-            null0x@ansible
+    - name: root
+      sshAuthorizedKeys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMmJacbLyO/WVFf6GrMVx2l31xGxynWrAEkzX3+myQzW
+        null0x@ansible
   machineTemplate:
     infrastructureRef:
       apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
@@ -208,7 +208,7 @@ spec:
           kubeletExtraArgs:
             provider-id: proxmox://'{{ ds.meta_data.instance_id }}'
       users:
-        - name: root
-          sshAuthorizedKeys:
-            - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMmJacbLyO/WVFf6GrMVx2l31xGxynWrAEkzX3+myQzW
-              null0x@ansible
+      - name: root
+        sshAuthorizedKeys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMmJacbLyO/WVFf6GrMVx2l31xGxynWrAEkzX3+myQzW
+          null0x@ansible
